@@ -6,16 +6,17 @@ library(shinyMatrix)
 library(shinyvalidate)
 library(shinycustomloader)
 library(RaMS)
+library(data.table)
 library(dplyr)
 library(plotly)
 library(RColorBrewer)
 library(purrr)
 library(rmarkdown)
-library(DT)
+library(kableExtra)
 
+## free memory
 gc()
 memory.limit(9999999999)
-
 
 dashboardPage(
 
@@ -34,7 +35,7 @@ dashboardPage(
       menuItem(text = strong("Logviewer"), tabName = "monitor", icon = icon("book")),
       hr(),
       menuItem(text = strong("MSConvert"), tabName = "convert", icon = icon("sync"), badgeLabel = "Local"),
-      menuItem(text = strong("QCviewer"), tabName = "evaluate", icon = icon("cog")),
+      menuItem(text = strong("QCviewer"), tabName = "evaluate", icon = icon("bell-o")),
       hr(),
       menuItem(text = strong("Contact"), tabName = "contact", icon = icon("smile"))
       )

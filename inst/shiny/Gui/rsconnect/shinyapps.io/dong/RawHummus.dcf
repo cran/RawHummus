@@ -5,9 +5,9 @@ account: dong
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 4354604
-bundleId: 4823568
+bundleId: 4850387
 url: https://bcdd.shinyapps.io/RawHummus/
-when: 1626376364.16826
-lastSyncTime: 1626376364.16827
+when: 1627064456.23488
+lastSyncTime: 1627064456.23489
 asMultiple: FALSE
 asStatic: FALSE

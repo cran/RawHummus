@@ -1,11 +1,13 @@
 ---
 title: "RawHumms Data Quality Control Report"
-date: '`r format(Sys.Date(), "%B, %Y")`'
+date: '`r format(Sys.Date(),  "%d, %B, %Y")`'
 output: 
   html_document:
     theme: flatly
     toc: true
     toc_float: true
+    number_sections: true
+    css: style.css
 params:
   msdata: NA
   mynoise: NA
@@ -17,6 +19,7 @@ editor_options:
 ---
 
 ```{r setup, echo = FALSE, warning = FALSE, message = FALSE}
+
 # get data and clean them
 msdata <- params$msdata
 mypeaks <- params$mypeaks
@@ -27,36 +30,43 @@ myrt <- params$myrt
 mypeaks <- as.data.frame(mypeaks) %>% 
   rename(rt = Expected_RT) %>%
   filter(!is.na(mz))
+
 ```
 
-## 1. Data Overview
+<img src = "logo.png" height = "120" style = "position: absolute; top: 20px; right: 10px;"/>
 
-### 1.1 TIC plot
+<br>
 
-Total Ion Current (TIC) chromatogram represents the summed ion intensity across the entire range of masses being detected at every point (scan) in the analysis. It generally gives an overview of your QC data. If there are significant variations among your QCs, e.g., retention time (RT) or ion intensity, you could observe them from TIC plot.
+# Introduction
+
+Metabolomics studies often comprise complex biological matrices resulting in huge amounts of data. Therefor raw data needs to be inspected before data processing in order to detect any putative error sources, e.g., retention time (RT) or mass accuracy shifts. In particular, proper quality control (QC) checks (e.g., for precision, signal drifts or offsets) are necessary in liquid chromatography mass spectrometry (LCMS) based metabolomics studies to ensure reliable and comparable results within experimental measurements [1-2].
+
+<span style = "color : #FF8300">**RawHummus**</span> is an user-friendly web application for rapid data quality check based on raw QC samples. It generates an HTML report with interactive plots, statistics and detailed illustrations that help users evaluate their data quality and LCMS system performance.
+
+# Data Overview
+
+## TIC plot
+
+`Total Ion Current (TIC)` chromatogram represents the summed ion intensity across each scan in the analysis. **The interactive overlaid TIC plot** can be used for rapid inspection of retention time (RT) and ion intensity fluctuations.
 
 ```{r TIC, echo = FALSE, out.width = "100%"}
 
 plotTIC <- ggplot(msdata$TIC) + 
   geom_line(aes(x = rt, y = int, color = filename)) +
-  facet_wrap(~ filename, scales = "free_y", ncol = 2) +
   labs(x = "RT (min)", y = "Intensity", color = "File name: ") +
-  theme_bw() +
-  theme(legend.position = "none")
+  theme_bw()
 
 ggplotly(plotTIC)
 
 ```
 
-### 1.2 Summed TIC Plot
+## Summed TIC Plot
 
-Summed TIC plot is another quick-and-dirty way to overview global ion intensity variations among QC samples. It summed TIC across the entire point (scan) in the analysis. 
+**Summed TIC plot** is another quick-and-dirty way to overview global ion intensity variations among QC samples. It summed TIC across the entire point (scan) in the analysis. 
 
 ```{r sumTIC, echo = FALSE, warning = FALSE, message = FALSE, out.width = "100%"}
 
-sumTIC <- msdata$TIC %>%
-  group_by(filename) %>%
-  summarise(peakArea = sum(int))
+sumTIC <- msdata$TIC[, list(peakArea = sum(int)), by = list(filename)]
 
 plotSumTIC <- ggplot(sumTIC, aes(x = filename, y = peakArea, group = 1)) +
   geom_bar(stat = "identity", aes(fill = filename), alpha = 0.5) +
@@ -68,45 +78,100 @@ ggplotly(plotSumTIC)
 
 ```
 
+## QC Correlation Analysis
 
-## 2. MS1
+**Pearson correlation** is  used to quantify the metabolic profile similarity among QC samples. Pearson correlation coefficient (**R**) closer to <span style = "color: #ff8080">**1**</span> indicate high similarity and therefore good LCMS system stability.
 
-### 2.1 Auto Peaks Evaluation
+> **Note that** as the number of mass features may vary among QC samples, TIC at each scan is used to calculate Pearson correlation coefficient.
+In cases where total number of scans are different among QC samples (which is usually due to the system virations at the end of the run), samples are automatically trimmed before calculating Pearson correlation coefficient.
 
-In order to more accurately monitor the variations in mass accuracy, RT consistency and ion intensity stability, `RawHummus` automatically selects **6** peaks across the entire RT range, and use them to evaluate LCMS system.
+```{r corTIC, echo = FALSE, warning = FALSE, message = FALSE, out.width = "100%"}
 
-Below are the Extracted ion chromatogram (EIC) of the 6 selected ions. You can interactively view, inspect and compare them among QC samples.
+## if scan number is the same, corTIC is dataframe, otherwise it is list
+corTIC <- msdata$TIC %>%
+  select(int, filename) %>%
+  unstack()
+
+## calculate correlation.
+if(is.data.frame(corTIC)){
+  kableExtra::kbl(round(cor(corTIC), 2), escape = FALSE, caption = "Table 1: Metabolic profile similarity")  %>%
+  kableExtra::kable_classic("hover", full_width = TRUE)
+} else {
+  ## get the minimum scan number
+  minScan <- min(map_df(corTIC, length))
+  
+  ## trim scans
+  corTIC2 <- map_df(corTIC, `[`, 1: minScan)
+  
+  ## correlation table
+  kableExtra::kbl(round(cor(corTIC2), 2),
+                  escape = FALSE, 
+                  caption = paste0("Table 1: Metabolic profile similarity (Sample trimmed to ", minScan, " TIC scans)"))  %>%
+  kableExtra::kable_classic("hover", full_width = TRUE)
+}
+
+```
+
+# MS1
+
+## Auto Peaks Evaluation
+
+In order to more accurately monitor variations in mass, RT and ion intensity, <span style = "color : #FF8300">**RawHummus**</span> automatically selects **6** peaks across the entire RT range, and use them to evaluate LCMS system.
+
+Below are the Extracted ion chromatogram (EIC) of the 6 selected ions. You can interactively view, inspect and compare them among different QC samples.
 
 ```{r MS1Plot, echo = FALSE, out.width = "100%"}
 
 # get lists of peaks for evaluation
-MS1Filter <- msdata$MS1 %>%
-  filter(int > mynoise) ## filter according user defined noise
 
-# get min and max RT of madata
+MS1Filter <- msdata$MS1[int > mynoise] ## filter according user defined noise
+
+# get min and max RT of msdata
 minRT <- min(MS1Filter$rt)
 maxRT <- max(MS1Filter$rt)
 
-topPeaks <- MS1Filter %>% 
-  mutate(bins = ntile(rt, 6)) %>%
-  group_by(bins) %>%
-  slice_max(int, n = 1) %>%
-  ungroup() %>%
-  select(rt, mz)
+##############################################################################
+# topPeaks <- MS1Filter %>% 
+#   mutate(bins = as.factor(cut(rt, 6, labels = FALSE))) %>%
+#   group_by(bins) %>%
+#   slice_max(int, n = 1, with_ties = FALSE) %>%
+#   ungroup() %>%
+#   select(rt, mz)
+##############################################################################
+
+## use data.table instead of dplyr
+topPeaks <- MS1Filter[, bins := cut(rt, 6, labels = FALSE)] %>%
+  .[, .SD[which.max(int)], by = bins] %>%
+  .[, list(rt, mz)]
 
 # search in raw data
 autoTarget <- vector(mode = "list", length = dim(topPeaks)[1])
+
+##############################################################################
+# for (i in 1:dim(topPeaks)[1]){
+#   autoTarget[[i]] <- MS1Filter %>%
+#     filter(between(mz, pmppm(topPeaks$mz[i], myppm)[1], pmppm(topPeaks$mz[i], myppm)[2])) %>%
+#     filter(between(rt, max(topPeaks$rt[i] - myrt, minRT), min(topPeaks$rt[i] + myrt, maxRT)))
+#   names(autoTarget)[i] <- paste0("RT: ", round(topPeaks$rt[i], 2), " mz: ", round(topPeaks$mz[i], 3))
+# }
+##############################################################################
+
+## use data.table instead of dplyr
 for (i in 1:dim(topPeaks)[1]){
-  
-  autoTarget[[i]] <- MS1Filter %>%
-    filter(between(mz, pmppm(topPeaks$mz[i], myppm)[1], pmppm(topPeaks$mz[i], myppm)[2]) & 
-             between(rt, max(topPeaks$rt[i] - myrt, minRT), min(topPeaks$rt[i] + myrt, maxRT)))
-  
+  autoTarget[[i]] <- MS1Filter[mz %between% pmppm(topPeaks$mz[i]) & rt %between% c(max(topPeaks$rt[i] - myrt, minRT), min(topPeaks$rt[i] + myrt, maxRT))]
   names(autoTarget)[i] <- paste0("RT: ", round(topPeaks$rt[i], 2), " mz: ", round(topPeaks$mz[i], 3))
 }
 
+
+##############################################################################
 # unlist
-autoTarget <- dplyr::bind_rows(autoTarget, .id = "id")
+# autoTarget <- dplyr::bind_rows(autoTarget, .id = "id")
+##############################################################################
+
+## unlist
+autoTarget <- data.table::rbindlist(autoTarget, idcol = T)
+data.table::setnames(autoTarget, ".id", "id") ## keep the same name as in dplyr
+  
 
 # plot
 if (nrow(autoTarget) > 0) {
@@ -115,50 +180,80 @@ if (nrow(autoTarget) > 0) {
       facet_wrap(~ id, scales = "free_y", ncol = 2) +
       labs(x = "RT (min)", y = "Intensity", color = "File name: ") +
       theme_bw()
-    
     ggplotly(aPlot)
-    
     } else {
       print("Peasks of interests are not found")
     }
 
 ```
 
-`RawHummus` performs a simple statistics to make the comparison simple. The table below summarized the comparison result, in which maximum RT difference, mass difference and ion intensity difference are given. Smaller 
+<span style = "color: #FF8300">**RawHummus**</span> performs a simple statistics to make the comparison simple. The table below summarized the comparison result, in which maximum RT difference, mass difference and ion intensity difference are given.
 
-**Max RT Diff (min)**: is the maximum retention time variation (in min unit). Small value indicates a good retention time consistency.
+`Max RT Diff (min)`: is the maximum retention time variation (in min unit). Small value indicates a good retention time consistency. If the maximum retention time variation is over <span style = "color: #ff8080">**1 min**</span>, the value will be highlight in <span style = "color: #ff8080">**red**</span> in Table 1. 
 
-**Max Mass Diff (ppm)**: is the maximum mass variation (in ppm unit). Small values indicate good mass accuracy. 
+`Max Mass Diff (ppm)`: is the maximum mass variation (in ppm unit). Small values indicate good mass accuracy. If the maximum mass variation is over <span style = "color: #ff8080">**5 ppm**</span>, the value will be highlight in <span style = "color: #ff8080">**red**</span> in Table 1.
 
-**Max Intensity Ratio**: is the maximum ion intensity variation. The value closer to 1 suggests that the ion intensity is stable. 
+`Max Intensity Ratio`: is the maximum ion intensity variation. The value closer to 1 suggests that the ion intensity is stable. If the maximum intensity ratio is over <span style = "color: #ff8080">**3**</span>, the value will be highlight in <span style = "color: #ff8080">**red**</span> in Table 1.
 
-Note that the above statistics are only rough estimations from the raw data.
+If a peak is missing in some of your samples, <span style = "color: #ff8080">**NA**</span> values will be give in the table. You need to carefully inspect the peak so as to evaluate the reproducibility.
 
 ```{r MS1Table, echo = FALSE, out.width = "100%"}
 
 if (nrow(autoTarget) > 0) {
- autoTargetTable <- autoTarget %>%
-  group_by(id, filename) %>%
-  slice_max(int) %>%
-  group_by(id) %>%
-  mutate("Max RT Diff (min)" = round(max(rt) - min(rt), 2),
-         "Max Mass Diff (ppm)" = round((max(mz) - min(mz))/min(mz) * 10^6, 2),
-         "Max Intensity Ratio" = round(max(int) / min(int), 2)) %>%
+  
+##############################################################################
+ # autoTargetTable <- autoTarget %>%
+ #  group_by(id, filename) %>%
+ #  slice_max(int) %>%
+ #  tidyr::complete(id, filename) %>%
+ #  group_by(id) %>%
+ #  mutate("Max RT Diff (min)" = round(max(rt) - min(rt), 2),
+ #         "Max Mass Diff (ppm)" = round((max(mz) - min(mz))/min(mz) * 10^6, 2),
+ #         "Max Intensity Ratio" = round(max(int) / min(int), 2)) %>%
+ #  mutate(Peak = id) %>%
+ #  ungroup() %>%
+ #  select(Peak, "Max RT Diff (min)", "Max Mass Diff (ppm)", "Max Intensity Ratio") %>%
+ #  distinct_all() %>% 
+ #  mutate("Max RT Diff (min)" = kableExtra::cell_spec(`Max RT Diff (min)`,
+ #                                                     background = ifelse(`Max RT Diff (min)` > 1, "#ff8080", "#FFFFFF")),
+ #         "Max Mass Diff (ppm)" = kableExtra::cell_spec(`Max Mass Diff (ppm)`, 
+ #                                                       background = ifelse(`Max Mass Diff (ppm)` > 5, "#ff8080", "#FFFFFF")),
+ #         "Max Intensity Ratio" = kableExtra::cell_spec(`Max Intensity Ratio`, 
+ #                                                       background = ifelse(`Max Intensity Ratio` > 3, "#ff8080", "#FFFFFF")))
+##############################################################################
+  
+  ## fix bug#2
+  autoTargetTable  <- autoTarget[, .SD[which.max(int)], by = .(id, filename)] %>% 
+  ## data.table fill missing rows 
+  .[CJ(id = unique(id), filename = unique(msdata$TIC$filename)), on = c('id','filename')] %>%
+  .[, `:=`("Max RT Diff (min)" =  round(max(rt) - min(rt), 2),
+           "Max Mass Diff (ppm)" = round((max(mz) - min(mz))/min(mz) * 10^6, 2),
+           "Max Intensity Ratio" = round(max(int) / min(int), 2)), by = id] %>%
   mutate(Peak = id) %>%
-  ungroup() %>%
   select(Peak, "Max RT Diff (min)", "Max Mass Diff (ppm)", "Max Intensity Ratio") %>%
-  distinct_all()
+  distinct_all() %>%
+  mutate("Max RT Diff (min)" = kableExtra::cell_spec(`Max RT Diff (min)`, 
+                                                     background = ifelse((`Max RT Diff (min)` > 1 | is.na(`Max RT Diff (min)`)) , "#ff8080", "#FFFFFF")),
+         "Max Mass Diff (ppm)" = kableExtra::cell_spec(`Max Mass Diff (ppm)`, 
+                                                       background = ifelse((`Max Mass Diff (ppm)` > 5 | is.na(`Max Mass Diff (ppm)` )), "#ff8080", "#FFFFFF")),
+         "Max Intensity Ratio" = kableExtra::cell_spec(`Max Intensity Ratio`, 
+                                                       background = ifelse(c(`Max Intensity Ratio` > 3 | is.na(`Max Intensity Ratio`)), "#ff8080", "#FFFFFF")))
  
-DT::datatable(autoTargetTable) 
+ ## use kableExtra instead of DT
+ kableExtra::kbl(autoTargetTable, escape = FALSE, caption = "Table 2: Summary of auto-selected peaks") %>%
+  kableExtra::kable_classic("hover", full_width = TRUE)
+
 } else {
   print("Peasks of interests are not found")
 }
 
 ```
 
-### 2.2 User defined peaks
+## User defined peaks
 
-Additionally, users could add their peaks of interests for inspection and comparison. If these peaks are defined in `RawHummus` and are found in the data. Similar plots and a data summary table will be given below. Otherwise, this section will be left blank.
+Additionally, users could add their peaks of interests for inspection and comparison. If these peaks are defined in <span style = "color: #FF8300">**RawHummus**</span> and are found in the data. Similar plots and a data summary table will be given below. Otherwise, this section will be left blank.
+
+> **Note that** noise peaks can be used to minitor the mass accuracy variation, but they may not work well to evalute RT and ion intensity variation.
 
 ```{r userMS1Plot, echo = FALSE, out.width = "100%"}
 
@@ -166,16 +261,29 @@ if(!all(is.na(mypeaks))) {
   
   # search according to mz and RT with tolerances
   getTarget <- vector(mode = "list", length = dim(mypeaks)[1])
-
-  for (i in 1:dim(mypeaks)[1]){
-  getTarget[[i]] <- MS1Filter[mz%between%pmppm(mypeaks$mz[i], myppm) & 
-                                 rt%between%c(max(mypeaks$rt[i] - myrt, minRT), min(mypeaks$rt[i] + myrt,maxRT))]
-  names(getTarget)[i] <- paste0(" RT: ", round(mypeaks$rt[i], 2), " mz: ", round(mypeaks$mz[i], 3))
   
+  ##############################################################################
+  # for (i in 1:dim(mypeaks)[1]){
+  #   getTarget[[i]] <- MS1Filter %>%
+  #     filter(between(mz, pmppm(mypeaks$mz[i], myppm)[1], pmppm(mypeaks$mz[i], myppm)[2])) %>%
+  #     filter(between(rt, max(mypeaks$rt[i] - myrt, minRT, na.rm = TRUE), min(mypeaks$rt[i] + myrt, maxRT, na.rm = TRUE)))
+  #   names(getTarget)[i] <- paste0(" RT: ", round(mypeaks$rt[i], 2), " mz: ", round(mypeaks$mz[i], 3))
+  # }
+  
+  # unlist
+  # myTarget <- dplyr::bind_rows(getTarget, .id = "id")
+  ##############################################################################
+  
+  ## use data.table instead of dplyr
+  for (i in 1:dim(mypeaks)[1]){
+  getTarget[[i]] <- MS1Filter[mz %between% pmppm(mypeaks$mz[i]) & 
+                                rt %between% c(max(mypeaks$rt[i] - myrt, minRT, na.rm = TRUE), min(mypeaks$rt[i] + myrt, maxRT, na.rm = TRUE))]
+  names(getTarget)[i] <- paste0(" RT: ", round(mypeaks$rt[i], 2), " mz: ", round(mypeaks$mz[i], 3))
   }
   
   # unlist
-  myTarget <- dplyr::bind_rows(getTarget, .id = "id")
+  myTarget <- data.table::rbindlist(getTarget, idcol = T)
+  data.table::setnames(myTarget, ".id", "id") ## keep the same name as in dplyr
   
   # plot
   if (nrow(myTarget) > 0) {
@@ -184,13 +292,9 @@ if(!all(is.na(mypeaks))) {
       facet_wrap(~ id, scales = "free_y", ncol = 2) +
       labs(x = "RT (min)", y = "Intensity", color = "File name: ") +
       theme_bw()
-    
     ggplotly(uPlot)
-    
-    } else {
-      myTarget <- NULL
-      print("User defined peaks are not found")
     }
+  
 } else {
   myTarget <- NULL
   print("User defined peaks are not found")
@@ -202,43 +306,78 @@ if(!all(is.na(mypeaks))) {
 ```{r userMS1Table, echo = FALSE, out.width = "100%"}
 
 if (!is.null(myTarget)) {
- myTargetTable <- myTarget %>%
-  group_by(id, filename) %>%
-  slice_max(int) %>%
-  group_by(id) %>%
-  mutate("Max RT Diff (min)" = round(max(rt) - min(rt), 2),
-         "Max Mass Diff (ppm)" = round((max(mz) - min(mz))/min(mz) * 10^6, 2),
-         "Max Intensity Ratio" = round(max(int) / min(int), 2)) %>%
-  mutate(Peak = id) %>%
-  ungroup() %>%
-  select(Peak, "Max Mass Diff (ppm)", "Max RT Diff (min)", "Max Intensity Ratio") %>%
-  distinct_all()
-
-DT::datatable(myTargetTable) 
   
-} else {
-  print("User defined peaks are not found")
-}
+   ##############################################################################
+  
+ # myTargetTable <- myTarget %>%
+ #  group_by(id, filename) %>%
+ #  slice_max(int) %>%
+ #  tidyr::complete(id, filename) %>%
+ #  group_by(id) %>%
+ #  mutate("Max RT Diff (min)" = round(max(rt) - min(rt), 2),
+ #         "Max Mass Diff (ppm)" = round((max(mz) - min(mz))/min(mz) * 10^6, 2),
+ #         "Max Intensity Ratio" = round(max(int) / min(int), 2)) %>%
+ #  mutate(Peak = id) %>%
+ #  ungroup() %>%
+ #  select(Peak, "Max RT Diff (min)", "Max Mass Diff (ppm)", "Max Intensity Ratio") %>%
+ #  distinct_all() %>%
+ #  mutate("Max RT Diff (min)" = kableExtra::cell_spec(`Max RT Diff (min)`,
+ #                                                     background = ifelse(`Max RT Diff (min)` > 1, "#ff8080", "#FFFFFF")),
+ #         "Max Mass Diff (ppm)" = kableExtra::cell_spec(`Max Mass Diff (ppm)`, 
+ #                                                       background = ifelse(`Max Mass Diff (ppm)` > 5, "#ff8080", "#FFFFFF")),
+ #         "Max Intensity Ratio" = kableExtra::cell_spec(`Max Intensity Ratio`, 
+ #                                                       background = ifelse(`Max Intensity Ratio` > 3, "#ff8080", "#FFFFFF")))
+  
+   ##############################################################################
+  
+   myTargetTable  <- myTarget[, .SD[which.max(int)], by = .(id, filename)] %>% 
+  ## data.table fill missing rows 
+  .[CJ(id = unique(id), filename = unique(msdata$MS1$filename)), on = c('id','filename')] %>%
+  .[, `:=`("Max RT Diff (min)" =  round(max(rt) - min(rt), 2),
+           "Max Mass Diff (ppm)" = round((max(mz) - min(mz))/min(mz) * 10^6, 2),
+           "Max Intensity Ratio" = round(max(int) / min(int), 2)), 
+    by = id] %>%
+  mutate(Peak = id) %>%
+  select(Peak, "Max RT Diff (min)", "Max Mass Diff (ppm)", "Max Intensity Ratio") %>%
+  distinct_all() %>%
+  mutate("Max RT Diff (min)" = kableExtra::cell_spec(`Max RT Diff (min)`,
+                                                     background = ifelse((`Max RT Diff (min)` > 1 | is.na(`Max RT Diff (min)`)) , "#ff8080", "#FFFFFF")),
+         "Max Mass Diff (ppm)" = kableExtra::cell_spec(`Max Mass Diff (ppm)`, 
+                                                       background = ifelse((`Max Mass Diff (ppm)` > 5 | is.na(`Max Mass Diff (ppm)` )), "#ff8080", "#FFFFFF")),
+         "Max Intensity Ratio" = kableExtra::cell_spec(`Max Intensity Ratio`, 
+                                                       background = ifelse(c(`Max Intensity Ratio` > 3 | is.na(`Max Intensity Ratio`)), "#ff8080", "#FFFFFF")))
+ 
+
+## use kableExtra instead of DT 
+ kableExtra::kbl(myTargetTable, escape = FALSE, caption = "Table 3: Summary of user-defined peaks") %>%
+  kableExtra::kable_classic("hover", full_width = TRUE)
+ 
+ }
 
 ```
 
-## 3. MS2
+# MS2
 
-MS2 is another information for inspection. If 
+MS/MS fragmentation is important for metabolite identification. RawHummus is also able to identify problems with regard to fragmentation.
 
-### 3.1 Number of MS2
+> **Note that** if your data files do not contain any MS/MS information, this section will be left blank.
+
+## Number of MS/MS
+
+`Number of triggered MS/MS`: is the total number of MS/MS events in the sample. Similar number of triggered MS/MS events indicates good reproducibility.
+
 
 ```{r MS2, echo = FALSE}
 
 if(nrow(msdata$MS2) == 0){
-  print("MS2 data not found")
   getMS2 <- NULL
   MS2_mz <- NULL
   MS2_RT <- NULL
 } else {
   getMS2 <- msdata$MS2 %>% 
     group_by(filename) %>%
-    summarise(MS2_Events = n_distinct(premz))
+    distinct(rt, premz) %>%
+    summarise("MS2 Events" = n())
   
   MS2unique <- msdata$MS2 %>%
   distinct(rt, premz, voltage, filename)
@@ -264,11 +403,19 @@ if(nrow(msdata$MS2) == 0){
 
 ```{r MS2Table, echo = FALSE, out.width = "100%"}
 
-DT::datatable(getMS2)
+## use kableExtra instead of DT 
+if(!is.null(getMS2)){
+  kableExtra::kbl(getMS2, escape = FALSE, caption = "Table 4: Summary of MS2 events") %>%
+    kableExtra::kable_classic("hover", full_width = TRUE)
+} else {
+  print("not exist")
+}
 
 ```
  
-### 3.2 Precursor Distribution accross mass 
+## Precursor Distribution across Mass 
+
+`Precursor Distribution across Mass` plot is used to visualize the mass range proportion of fragmented precursors. 
 
 ```{r MS2MZ, echo = FALSE, out.width = "100%"}
 
@@ -281,7 +428,14 @@ if(!is.null(MS2_mz)){
 
 ```
 
-### 3.3 Precursor Distribution accross RT
+## Precursor Distribution across RT
+
+`Precursor Distribution across RT` plot is used to visualize the number of fragmented precursors at each RT (or scan). It can be useful to spot any signal dropouts during data acquisition.
+ 
+- In **data-dependent acquisition (DDA)** mode, the MS detects the abundance of mass features in MS1 and selects top N features based on intensity for fragmentation; theoretically the number of selected precursors for fragmentation at each scan (or RT) should be the same. If this mode was used for your data acquisition, you are expected to see a homogeneous precursor ions distribution across the entire RT range.
+
+- Commonly used **data-independent acquisition (DIA)** mode includes all-ion fragmentation (AIF) (e.g., MS<sup>All</sup> and MS<sup>E</sup>), where all precursors are fragmented; and sequential window acquisition of all theoretical fragment-ion spectra (SWATH), where a medium pass window, such as 20 or 25 Da, is used [3]. If this mode was used for your data acquisition, you are expected to see a continuous precursor ion distribution across the entire RT range.
+
 
 ```{r MS2RT, echo = FALSE, out.width = "100%"}
 
@@ -292,5 +446,14 @@ if(!is.null(MS2_RT)){
 }
 
 ```
+
+# Reference
+
+[1] Scalbert, A., Brennan, L., Fiehn, O., Hankemeier, T., Kristal, B.S., van Ommen, B., Pujos-Guillot, E., Verheij, E., Wishart, D. and Wopereis, S., 2009. Mass-spectrometry-based metabolomics: limitations and recommendations for future progress with particular focus on nutrition research. Metabolomics, 5(4), pp.435-458.
+
+[2] Begou, O., Gika, H.G., Theodoridis, G.A. and Wilson, I.D., 2018. Quality Control and Validation Issues in LC-MS Metabolomics. Methods in molecular biology (Clifton, NJ), 1738, pp.15-26.
+
+[3] Guo, J., & Huan, T., 2020. Comparison of full-scan, data-dependent, and data-independent acquisition modes in liquid chromatography–mass spectrometry based untargeted metabolomics. Analytical chemistry, 92(12), pp.8072-8080.
+
 
 

@@ -1,4 +1,3 @@
-
 chartr0 <- function(x) chartr('\\','/', x)
 
 msconvertPath <- reactive({
@@ -19,11 +18,11 @@ observe({
   # 2. choose raw files
   shinyFiles::shinyFileChoose(input, "files", roots = volumes())
 
-    rawPath <<- shinyFiles::parseFilePaths(volumes(), input$files) # dataframe type
+  rawPath <<- shinyFiles::parseFilePaths(volumes(), input$files) # dataframe type
 
-    output$filesPath <- renderDataTable({
-      rawPath[, c(1, 2, 4)] # show only name, size and filepath
-      })
+  output$filesPath <- shiny::renderDataTable({
+    rawPath[, c(1, 2, 4)] # show only name, size and filepath
+  })
 
 })
 
@@ -34,9 +33,9 @@ observeEvent(input$convert, {
   output$convertMessage <- renderText({
 
     shiny::validate(
-      need(!is.null(msconvertPath()), 'Please add msconvert.exe software path'),
+      need(file.exists(msconvertPath()), 'MSconvert software not found! Please add correct software path'),
       need(nrow(rawPath) > 0, "Please select (correct) data for conversion"),
-      need(!is.null(outPath()), 'Please choose a directory to save converted data.')
+      need(dir.exists(outPath()), 'Directory not exist! Please choose a directory to save converted data.')
     )
 
     for (i in 1:nrow(rawPath)) {
