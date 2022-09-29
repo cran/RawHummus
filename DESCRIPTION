@@ -1,7 +1,7 @@
 Package: RawHummus
 Type: Package
 Title: Raw Data Quality Control Tool for LC-MS System
-Version: 0.2.1
+Version: 0.2.2
 Author: Yonghui Dong
 Maintainer: Yonghui Dong <yonghui.dong@gmail.com>
 Description: Assess LC–MS system performance by visualizing instrument log files and monitoring raw quality control samples within a project.
@@ -12,8 +12,8 @@ Imports: shiny, shinydashboard, shinydashboardPlus, shinyFiles,
         markdown, kableExtra
 License: GPL-3
 Encoding: UTF-8
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.1
 NeedsCompilation: no
-Packaged: 2021-12-02 20:31:56 UTC; dong
+Packaged: 2022-09-28 10:05:49 UTC; dong
 Repository: CRAN
-Date/Publication: 2021-12-02 20:40:02 UTC
+Date/Publication: 2022-09-29 05:00:02 UTC
