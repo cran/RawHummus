@@ -1,6 +1,6 @@
-595a60e278ea40a7ff941657709d43d4 *DESCRIPTION
-6b06438f9ab4b4e9a63252bb1895c601 *NAMESPACE
-d41669bc69d7424c1f030eead8921698 *R/runGui.R
+c616ed2fb97a6502f234c2f3f75b99e2 *DESCRIPTION
+84c6d86a2aad2bd7942f93dd2e65cb6f *NAMESPACE
+e39fa17784c07f2e197c5ed957d24144 *R/runGui.R
 70df8f50fb5df2f3f3940444b7b9fbb6 *README.md
 d1273682fb1a9679fccbff4c13b7d29a *inst/shiny/Gui/Report.Rmd
 5ba56acf687236a9e0c674efb03e2eeb *inst/shiny/Gui/logo.png
@@ -10,6 +10,7 @@ eaf24b25002a32e545590c9f430a9002 *inst/shiny/Gui/mds/pix/Fig1.png
 81541a982160c026e717640003b27c43 *inst/shiny/Gui/mds/pix/Tau.png
 5ba56acf687236a9e0c674efb03e2eeb *inst/shiny/Gui/mds/pix/logo.png
 17c0afbc6631c72b62cf3f9a3d8497d7 *inst/shiny/Gui/mds/pix/logo.svg
+6cc4bea445fce9d80d0a6e152a5c7152 *inst/shiny/Gui/rsconnect/shinyapps.io/bcdd/RawHummus.dcf
 a7106af34b1c9f96c3cd55c88af46585 *inst/shiny/Gui/rsconnect/shinyapps.io/dong/RawHummus.dcf
 99171fc8954c9a6bc554393e48b6f433 *inst/shiny/Gui/server-convert.R
 d0199ada2ebf63e9fdfa5d70bb0e8d6d *inst/shiny/Gui/server-evaluate.R
