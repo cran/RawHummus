@@ -1,19 +1,22 @@
 Package: RawHummus
-Type: Package
 Title: Raw Data Quality Control Tool for LC-MS System
-Version: 0.2.3
-Author: Yonghui Dong
-Maintainer: Yonghui Dong <yonghui.dong@gmail.com>
-Description: Assess LC–MS system performance by visualizing instrument log files and monitoring raw quality control samples within a project.
-Depends: R (>= 3.5.0)
-Imports: shiny, shinydashboard, shinydashboardPlus, shinyFiles,
-        shinyMatrix, shinyvalidate, shinycustomloader, RaMS,
-        data.table, purrr, dplyr, plotly, RColorBrewer, rmarkdown,
-        markdown, kableExtra
-License: GPL-3
+Version: 0.3.0
+Authors@R: 
+    person("Yonghui", "Dong", , "yonghui.dong@gmail.com", role = c("cre", "aut"))
+Description: Assess LC–MS system performance by visualizing instrument log
+    files and monitoring raw quality control samples within a project.
+License: MIT + file LICENSE
+Imports: config (>= 0.3.1), data.table, dplyr, ggplot2, golem (>=
+        0.3.5.9001), kableExtra, markdown, plotly, purrr, RaMS,
+        RColorBrewer, rmarkdown, shiny (>= 1.7.4), shinycustomloader,
+        shinydashboard, shinydashboardPlus, shinyMatrix, stats, utils
 Encoding: UTF-8
-RoxygenNote: 7.2.2
+RoxygenNote: 7.2.3
+Suggests: knitr
+VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2022-11-29 07:58:18 UTC; dong
+Packaged: 2023-03-23 10:39:02 UTC; dong
+Author: Yonghui Dong [cre, aut]
+Maintainer: Yonghui Dong <yonghui.dong@gmail.com>
 Repository: CRAN
-Date/Publication: 2022-11-29 08:10:02 UTC
+Date/Publication: 2023-03-23 11:00:06 UTC
