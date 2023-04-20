@@ -29,7 +29,8 @@ mod_qcView_ui <- function(id){
                  The 6 peaks are peaks with highest ion intensity from 6 evenly sliced RT ranges. Optionally, you could add peaks of interest to evaluate
                  your QC samples in a more targeted and specific manner."),
                p("3. You can click", strong("Read Data"), "button to start reading the raw data. Be patient, it may take a while for the evaluation process."),
-               p("4. Once data is extracted, a download butotn is prompt to allow downloading the evaluation report.")
+               p("4. Once data is extracted, a download button is prompt to allow downloading the evaluation report."),
+               p("5. You may need to restart your PC if the report generation is stuck.")
                )
              ),
 

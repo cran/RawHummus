@@ -1,5 +1,5 @@
 ---
-title: "RawHummus"
+title: "Welcome to RawHummus"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{RawHummus}
@@ -13,8 +13,32 @@ knitr::opts_chunk$set(
   comment = "#>"
 )
 ```
+Robust and reproducible data is essential to ensure high-quality analytical results and is particularly important for large-scale metabolomics studies where detector sensitivity drifts, retention time and mass accuracy shifts frequently occur. Therefore, raw data need to be inspected before data processing to detect measurement bias and verify system consistency.
 
-RawHummus is an R Shiny app for assessing LC–MS system performance by visualizing instrument log files and monitoring raw quality control samples within a project.
+RawHummus is an R Shiny app designed for an automated raw data quality control (QC) in metabolomics studies. It produces a comprehensive QC report, which contains interactive plots and tables, summary statistics and detailed explanations. 
+
+If you are using Thermo Q-Exactive series instrument, RawHummus also allows visualizing the log files (they are usually stored at `C:\Xcalibur\system\Exactive\log` folder), which contains over 40 different instrument metrics, such as ambient temperature and ambient humidity.
+
+## Installation
+
+You need to have R and optionally RStudio Installed. You can download them from this [link](https://posit.co/download/rstudio-desktop/). 
+
+Next you can run this code to install RawHummus.
+
+```{r eval = FALSE}
+install.packages('RawHummus')
+```
+
+## Usage
+
+Once RawHummus is installed. You can run the following code to start the web app.
+
+```{r eval = FALSE}
+library(RawHummus)
+run_app()
+```
+## Workflow and Features
+
 
 **Figure 1.** Overview of the main functions in RawHummus
 
@@ -44,20 +68,19 @@ RawHummus is an R Shiny app for assessing LC–MS system performance by visualiz
 |              | Cosine similarity of precursor ion distribution across mass | It measures the similarity of precursor ion distribution across mass. Cosine similarity score above 0.85 indicates that the precursor distributions across mass are similar between two files.                                                                                                                                                                                                                                                                                                                                                                  
 |              | Cosine similarity of precursor ion distribution across RT   | It measures the similarity of precursor ion distribution across mass. Cosine similarity score above 0.85 indicates that the precursor distributions across RT are similar between two files.                               
 
-## Installation
+## Data Preparation
 
-```{r eval = FALSE}
-install.packages('RawHummus')
-```
+RawHummus supports mzXML and mzML formats for analysis, meaning that you need to convert your raw data into one of the format.
 
-## Usage
+It's pretty easy to convert your raw data to the required format. MSConvert is recommended for data conversion. ProteoWizard msConvert can be download from this [link](https://proteowizard.sourceforge.io/download.html).
 
-Run the following script, the Web App will pop up and you can then enjoy using RawHummus.
+GNPS has provided a detailed explanation regarding file conversion. You can read the instruction [here](https://ccms-ucsd.github.io/GNPSDocumentation/fileconversion/)
 
-```{r eval = FALSE}
-library(RawHummus)
-run_app()
-```
+**Note that**: For Waters MSe data, the precursor ion and fragments are stored in two files, and RawHummus will only evaluate the precursor ion.
+
+## Demo Data
+
+A list of demo files have been provided, including log files and raw data files. Please use this [link](https://github.com/YonghuiDong/RawHummus_DemoData) to download the demo data.
 
 ## Citation
 

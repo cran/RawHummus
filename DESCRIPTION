@@ -1,6 +1,6 @@
 Package: RawHummus
 Title: Raw Data Quality Control Tool for LC-MS System
-Version: 0.3.0
+Version: 0.3.3
 Authors@R: 
     person("Yonghui", "Dong", , "yonghui.dong@gmail.com", role = c("cre", "aut"))
 Description: Assess LC–MS system performance by visualizing instrument log
@@ -15,8 +15,8 @@ RoxygenNote: 7.2.3
 Suggests: knitr
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2023-03-23 10:39:02 UTC; dong
+Packaged: 2023-04-20 08:12:24 UTC; dong
 Author: Yonghui Dong [cre, aut]
 Maintainer: Yonghui Dong <yonghui.dong@gmail.com>
 Repository: CRAN
-Date/Publication: 2023-03-23 11:00:06 UTC
+Date/Publication: 2023-04-20 08:30:06 UTC

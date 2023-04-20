@@ -355,7 +355,7 @@ if(!all(is.na(mypeaks))) {
   
   ## use data.table instead of dplyr
   for (i in 1:dim(mypeaks)[1]){
-  getTarget[[i]] <- MS1Filter[mz %between% pmppm(mypeaks$mz[i]) & 
+  getTarget[[i]] <- MS1Filter[mz %between% pmppm(mypeaks$mz[i], myppm) & 
                                 rt %between% c(max(mypeaks$rt[i] - myrt, minRT, na.rm = TRUE), min(mypeaks$rt[i] + myrt, maxRT, na.rm = TRUE))]
   names(getTarget)[i] <- paste0(" RT: ", round(mypeaks$rt[i], 2), " mz: ", round(mypeaks$mz[i], 3))
   }

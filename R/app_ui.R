@@ -13,7 +13,6 @@ app_ui <- function(request) {
     # Your application UI logic
     fluidPage(
       dashboardPage(
-        preloader = list(html = tagList(icon("smile", "fa-3x"), " Welcome to RawHummus..."), color = "#3c8dbc"),
         ## Header --------------------------------------------------------------
         header = dashboardHeader(title = strong("RawHummus")),
         ## Sidebar -------------------------------------------------------------

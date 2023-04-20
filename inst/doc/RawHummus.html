@@ -12,7 +12,7 @@
 
 
 
-<title>RawHummus</title>
+<title>Welcome to RawHummus</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -336,13 +336,41 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 
 
-<h1 class="title toc-ignore">RawHummus</h1>
+<h1 class="title toc-ignore">Welcome to RawHummus</h1>
 
 
 
-<p>RawHummus is an R Shiny app for assessing LC–MS system performance by
-visualizing instrument log files and monitoring raw quality control
-samples within a project.</p>
+<p>Robust and reproducible data is essential to ensure high-quality
+analytical results and is particularly important for large-scale
+metabolomics studies where detector sensitivity drifts, retention time
+and mass accuracy shifts frequently occur. Therefore, raw data need to
+be inspected before data processing to detect measurement bias and
+verify system consistency.</p>
+<p>RawHummus is an R Shiny app designed for an automated raw data
+quality control (QC) in metabolomics studies. It produces a
+comprehensive QC report, which contains interactive plots and tables,
+summary statistics and detailed explanations.</p>
+<p>If you are using Thermo Q-Exactive series instrument, RawHummus also
+allows visualizing the log files (they are usually stored at
+<code>C:\Xcalibur\system\Exactive\log</code> folder), which contains
+over 40 different instrument metrics, such as ambient temperature and
+ambient humidity.</p>
+<div id="installation" class="section level2">
+<h2>Installation</h2>
+<p>You need to have R and optionally RStudio Installed. You can download
+them from this <a href="https://posit.co/download/rstudio-desktop/">link</a>.</p>
+<p>Next you can run this code to install RawHummus.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">&#39;RawHummus&#39;</span>)</span></code></pre></div>
+</div>
+<div id="usage" class="section level2">
+<h2>Usage</h2>
+<p>Once RawHummus is installed. You can run the following code to start
+the web app.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(RawHummus)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">run_app</span>()</span></code></pre></div>
+</div>
+<div id="workflow-and-features" class="section level2">
+<h2>Workflow and Features</h2>
 <p><strong>Figure 1.</strong> Overview of the main functions in
 RawHummus</p>
 <p><br /></p>
@@ -466,16 +494,25 @@ distributions across RT are similar between two files.</td>
 </tr>
 </tbody>
 </table>
-<div id="installation" class="section level2">
-<h2>Installation</h2>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">&#39;RawHummus&#39;</span>)</span></code></pre></div>
 </div>
-<div id="usage" class="section level2">
-<h2>Usage</h2>
-<p>Run the following script, the Web App will pop up and you can then
-enjoy using RawHummus.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(RawHummus)</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">run_app</span>()</span></code></pre></div>
+<div id="data-preparation" class="section level2">
+<h2>Data Preparation</h2>
+<p>RawHummus supports mzXML and mzML formats for analysis, meaning that
+you need to convert your raw data into one of the format.</p>
+<p>It’s pretty easy to convert your raw data to the required format.
+MSConvert is recommended for data conversion. ProteoWizard msConvert can
+be download from this <a href="https://proteowizard.sourceforge.io/download.html">link</a>.</p>
+<p>GNPS has provided a detailed explanation regarding file conversion.
+You can read the instruction <a href="https://ccms-ucsd.github.io/GNPSDocumentation/fileconversion/">here</a></p>
+<p><strong>Note that</strong>: For Waters MSe data, the precursor ion
+and fragments are stored in two files, and RawHummus will only evaluate
+the precursor ion.</p>
+</div>
+<div id="demo-data" class="section level2">
+<h2>Demo Data</h2>
+<p>A list of demo files have been provided, including log files and raw
+data files. Please use this <a href="https://github.com/YonghuiDong/RawHummus_DemoData">link</a> to
+download the demo data.</p>
 </div>
 <div id="citation" class="section level2">
 <h2>Citation</h2>
